@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Temp Email Studio Pro</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            50: '#f0fdf4',
+                            500: '#10b981',
+                            600: '#059669',
+                            950: '#022c22'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- QRCode Styling Library -->
+    <script type="text/javascript" src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
+
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.05); }
+        .dark ::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); }
+        ::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.5); border-radius: 9999px; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen transition-colors duration-200 antialiased selection:bg-emerald-500 selection:text-white">
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Header Navigation -->
+    <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur-md sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="p-2.5 bg-gradient-to-tr from-emerald-600 to-teal-500 rounded-xl text-white shadow-lg shadow-emerald-500/20">
+                    <i class="fa-solid fa-shield-halved text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-lg sm:text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">
+                        GhostInbox Secure
+                    </h1>
+                    <p class="text-xs text-slate-400 hidden sm:block">Private Passcode-Protected Temporary Email Suite</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <!-- Passcode Status Indicator -->
+                <div id="passcode-badge" class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-xs font-mono">
+                    <i class="fa-solid fa-key text-amber-400"></i>
+                    <span class="text-slate-400">Key:</span>
+                    <span id="display-passcode" class="text-emerald-400 font-bold">---</span>
+                </div>
+
+                <!-- Theme Toggle -->
+                <button id="theme-toggle" class="p-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 transition">
+                    <i class="fa-solid fa-moon dark:hidden"></i>
+                    <i class="fa-solid fa-sun hidden dark:block text-amber-400"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+        <!-- ACCESS CONFIGURATION PANEL -->
+        <section class="bg-slate-950/60 backdrop-blur-md border border-slate-800 rounded-2xl p-5 shadow-xl">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                
+                <!-- Email & Domain Selector -->
+                <div class="flex-1 space-y-2">
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Your Active Temporary Address</label>
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <div class="relative flex-1">
+                            <input type="text" id="username-input" placeholder="username" class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm font-mono text-emerald-400 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        </div>
+                        <div class="sm:w-48">
+                            <select id="domain-select" class="w-full px-3 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm font-semibold text-slate-200 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                                <option value="@tempmail-pro.io">@tempmail-pro.io</option>
+                                <option value="@snapbox.me">@snapbox.me</option>
+                                <option value="@cyber-mail.net">@cyber-mail.net</option>
+                                <option value="@ghostmail.org">@ghostmail.org</option>
+                            </select>
+                        </div>
+                        <button onclick="generateRandomAlias()" class="px-4 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-dice"></i> Random
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Secret Passcode Box -->
+                <div class="lg:w-80 space-y-2 border-t lg:border-t-0 lg:border-l border-slate-800 pt-4 lg:pt-0 lg:pl-6">
+                    <label class="block text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-lock"></i> Private Secret Passcode
+                    </label>
+                    <div class="flex gap-2">
+                        <input type="text" id="passcode-input" placeholder="e.g. user_x89f2" class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm font-mono text-amber-300 focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                        <button onclick="lockAndAccessInbox()" class="px-4 py-3 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-amber-600/20">
+                            <i class="fa-solid fa-key"></i> Lock
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Action Toolbar (Copy, QR, Timer, Auto-refresh) -->
+            <div class="mt-5 pt-4 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-4">
+                
+                <div class="flex flex-wrap items-center gap-2">
+                    <button onclick="copyEmailAddress()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-md shadow-emerald-600/20">
+                        <i class="fa-solid fa-copy"></i> Copy Email
+                    </button>
+                    <button onclick="openQrModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition flex items-center gap-2">
+                        <i class="fa-solid fa-qrcode"></i> QR Code
+                    </button>
+                    <button onclick="manualRefresh()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition flex items-center gap-2">
+                        <i id="refresh-icon" class="fa-solid fa-rotate"></i> Refresh Mail
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-4 text-xs">
+                    <!-- Expiry Timer -->
+                    <div class="flex items-center gap-1.5 text-slate-400 font-mono bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-800">
+                        <i class="fa-regular fa-clock text-emerald-400"></i>
+                        <span>Expires in:</span>
+                        <span id="countdown-timer" class="font-bold text-slate-200">59:45</span>
+                        <button onclick="extendTime()" class="ml-1 text-emerald-400 hover:underline font-bold">+10m</button>
+                    </div>
+                    <!-- Auto-refresh Toggle -->
+                    <label class="flex items-center gap-2 cursor-pointer text-slate-300 font-medium select-none">
+                        <input type="checkbox" id="auto-refresh-toggle" checked class="rounded text-emerald-600 focus:ring-emerald-500 bg-slate-900 border-slate-700">
+                        <span>Auto-sync</span>
+                    </label>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SIMULATOR CONTROL PANEL -->
+        <section class="bg-emerald-950/20 border border-emerald-900/30 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-emerald-500/20 text-emerald-400 rounded-xl">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </div>
+                <div>
+                    <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider">Test Incoming Simulation</h3>
+                    <p class="text-xs text-slate-400">Send an instant mock email to this secure passcode inbox right now.</p>
+                </div>
+            </div>
+            <button onclick="openSimulatorModal()" class="w-full sm:w-auto px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20">
+                <i class="fa-solid fa-bolt"></i> Simulate New Incoming Email
+            </button>
+        </section>
+
+        <!-- INBOX DASHBOARD -->
+        <section class="bg-slate-950/60 backdrop-blur-md border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+            <!-- Table Header -->
+            <div class="px-6 py-4 border-b border-slate-800 bg-slate-900/60 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <h2 class="font-extrabold text-sm text-slate-200 uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-inbox text-emerald-400"></i> Secure Inbox
+                    </h2>
+                    <span id="unread-badge" class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-bold">0 unread</span>
+                </div>
+                <button onclick="clearInbox()" class="text-xs font-semibold text-rose-400 hover:text-rose-300 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-trash-can"></i> Clear All
+                </button>
+            </div>
+
+            <!-- Email List -->
+            <div id="email-list-container" class="divide-y divide-slate-800/80 min-h-[300px]">
+                <!-- Empty State -->
+                <div id="empty-inbox" class="flex flex-col items-center justify-center py-20 px-4 text-center">
+                    <div class="w-16 h-16 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-600 text-2xl mb-4">
+                        <i class="fa-regular fa-envelope-open"></i>
+                    </div>
+                    <h3 class="font-bold text-slate-300 text-sm mb-1">Your inbox is empty</h3>
+                    <p class="text-xs text-slate-500 max-w-sm mb-4">Waiting for incoming messages. Share your private passcode or use the simulation button above.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- EMAIL READER MODAL -->
+    <div id="email-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-150">
+            <!-- Modal Header -->
+            <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
+                <div>
+                    <span id="modal-sender" class="text-xs font-mono text-emerald-400">sender@domain.com</span>
+                    <h3 id="modal-subject" class="font-bold text-base text-slate-100 mt-0.5">Email Subject Here</h3>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="toggleRawSource()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 transition">
+                        Toggle Raw Source
+                    </button>
+                    <button onclick="closeEmailModal()" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- Modal Body -->
+            <div class="p-6 overflow-y-auto space-y-4 flex-1">
+                <div class="flex items-center justify-between text-xs text-slate-500 border-b border-slate-800 pb-3">
+                    <span id="modal-time">Today at 10:45 AM</span>
+                    <div class="flex gap-2">
+                        <button onclick="mockReply()" class="hover:text-emerald-400 font-semibold flex items-center gap-1"><i class="fa-solid fa-reply"></i> Reply</button>
+                        <button onclick="mockForward()" class="hover:text-emerald-400 font-semibold flex items-center gap-1"><i class="fa-solid fa-share"></i> Forward</button>
+                    </div>
+                </div>
+                
+                <div id="modal-body-html" class="prose prose-invert max-w-none text-sm text-slate-200">
+                    <!-- Email Content Rendered Here -->
+                </div>
+
+                <pre id="modal-body-raw" class="hidden p-4 rounded-xl bg-slate-950 text-emerald-400 font-mono text-xs overflow-x-auto"></pre>
+
+                <!-- Attachments section -->
+                <div id="modal-attachments" class="hidden pt-4 border-t border-slate-800 space-y-2">
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Attachments (1)</span>
+                    <div class="flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-file-pdf text-rose-400"></i>
+                            <span class="font-semibold">verification_code.pdf</span>
+                        </div>
+                        <button onclick="showToast('Downloaded attachment!', 'success')" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold">Download</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SIMULATE EMAIL MODAL -->
+    <div id="simulator-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="font-bold text-sm text-slate-200 uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-paper-plane text-emerald-400"></i> Simulate Incoming Mail
+                </h3>
+                <button onclick="closeSimulatorModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold mb-1 text-slate-400">Sender Name & Email</label>
+                    <input type="text" id="sim-sender" value="GitHub &lt;no-reply@github.com&gt;" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold mb-1 text-slate-400">Email Subject</label>
+                    <input type="text" id="sim-subject" value="[GitHub] Your personal verification code is 894-201" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold mb-1 text-slate-400">Message Body (HTML supported)</label>
+                    <textarea id="sim-body" rows="4" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 font-mono">&lt;p&gt;Hello user,&lt;/p&gt;&lt;p&gt;Someone tried to login to your account. Your verification code is:&lt;/p&gt;&lt;h2 style="color: #10b981;"&gt;894-201&lt;/h2&gt;</textarea>
+                </div>
+                <div class="flex items-center gap-2">
+                    <label class="flex items-center gap-2 text-xs text-slate-400 cursor-pointer">
+                        <input type="checkbox" id="sim-attachment" class="rounded text-emerald-600 bg-slate-950 border-slate-800"> Include PDF Attachment
+                    </label>
+                </div>
+            </div>
+            <button onclick="sendSimulatedEmail()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-emerald-600/20">
+                Dispatch Test Mail Now
+            </button>
+        </div>
+    </div>
+
+    <!-- QR CODE MODAL -->
+    <div id="qr-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm p-6 shadow-2xl text-center space-y-4">
+            <h3 class="font-bold text-sm text-slate-200 uppercase tracking-wider">Email Address QR Code</h3>
+            <div id="qr-code-box" class="bg-white p-4 rounded-xl inline-block shadow-inner mx-auto"></div>
+            <p id="qr-modal-email" class="font-mono text-xs text-emerald-400"></p>
+            <button onclick="document.getElementById('qr-modal').classList.add('hidden')" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold">Close</button>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // State Management
+        let currentPasscode = 'sec_' + Math.random().toString(36).substring(2, 8);
+        let currentAlias = 'user_' + Math.random().toString(36).substring(2, 8);
+        let currentDomain = '@tempmail-pro.io';
+        let inboxStore = {}; // keyed by passcode
+        let expirySeconds = 3585;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('passcode-input').value = currentPasscode;
+            document.getElementById('display-passcode').innerText = currentPasscode;
+            document.getElementById('username-input').value = currentAlias;
+
+            // Initialize storage for this passcode if empty
+            if(!inboxStore[currentPasscode]) {
+                inboxStore[currentPasscode] = [
+                    {
+                        id: 'mail_init_1',
+                        sender: 'Welcome Bot <support@tempmail-pro.io>',
+                        subject: 'Welcome to GhostInbox Secure!',
+                        snippet: 'Your secure passcode-protected temporary email is ready to use...',
+                        body: '<h3>Welcome aboard!</h3><p>Your private mailbox is secured by passcode: <b>' + currentPasscode + '</b>. Share this passcode or your email address with trusted entities to receive secure messages.</p>',
+                        time: 'Just now',
+                        unread: true,
+                        hasAttachment: false
+                    }
+                ];
+            }
+
+            renderInbox();
+            startCountdown();
+
+            // Event Listeners
+            document.getElementById('username-input').addEventListener('input', (e) => {
+                currentAlias = e.target.value.trim() || 'user';
+            });
+            document.getElementById('domain-select').addEventListener('change', (e) => {
+                currentDomain = e.target.value;
+            });
+
+            // Theme toggle listener
+            document.getElementById('theme-toggle').addEventListener('click', () => {
+                document.documentElement.classList.toggle('dark');
+            });
+        });
+
+        // Toast Notification Helper
+        function showToast(msg, type='info') {
+            const container = document.getElementById('toast-container');
+            const t = document.createElement('div');
+            t.className = `pointer-events-auto flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-bold text-white shadow-xl transition-all transform translate-y-2 opacity-0 ${type === 'success' ? 'bg-emerald-600' : 'bg-slate-800 border border-slate-700'}`;
+            t.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-check-circle text-emerald-300' : 'fa-info-circle'}"></i> ${msg}`;
+            container.appendChild(t);
+            setTimeout(() => t.classList.remove('translate-y-2', 'opacity-0'), 10);
+            setTimeout(() => { t.classList.add('opacity-0', 'translate-y-2'); setTimeout(() => t.remove(), 300); }, 3000);
+        }
+
+        function getFullEmailAddress() {
+            return currentAlias + currentDomain;
+        }
+
+        // Lock & Access Inbox via Passcode
+        function lockAndAccessInbox() {
+            const val = document.getElementById('passcode-input').value.trim();
+            if(!val) {
+                showToast('Please enter a valid secret passcode', 'error');
+                return;
+            }
+            currentPasscode = val;
+            document.getElementById('display-passcode').innerText = currentPasscode;
+
+            if(!inboxStore[currentPasscode]) {
+                inboxStore[currentPasscode] = []; // brand new private inbox session
+            }
+            renderInbox();
+            showToast(`Switched and locked to passcode: ${currentPasscode}`, 'success');
+        }
+
+        function generateRandomAlias() {
+            currentAlias = 'user_' + Math.random().toString(36).substring(2, 8);
+            document.getElementById('username-input').value = currentAlias;
+            showToast('Generated new random alias', 'success');
+        }
+
+        function copyEmailAddress() {
+            const addr = getFullEmailAddress();
+            const textArea = document.createElement("textarea");
+            textArea.value = addr;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast(`Copied: ${addr}`, 'success');
+            } catch (err) {
+                showToast('Failed to copy', 'error');
+            }
+            document.body.removeChild(textArea);
+        }
+
+        // Render Inbox Table
+        function renderInbox() {
+            const container = document.getElementById('email-list-container');
+            const messages = inboxStore[currentPasscode] || [];
+            
+            // Unread count
+            const unreadCount = messages.filter(m => m.unread).length;
+            const badge = document.getElementById('unread-badge');
+            badge.innerText = `${unreadCount} unread`;
+
+            if(messages.length === 0) {
+                container.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-20 px-4 text-center">
+                        <div class="w-16 h-16 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-600 text-2xl mb-4">
+                            <i class="fa-regular fa-envelope-open"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-300 text-sm mb-1">Your inbox is empty</h3>
+                        <p class="text-xs text-slate-500 max-w-sm mb-4">Waiting for incoming messages. Share your private passcode or use the simulation button above.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            messages.forEach((msg) => {
+                html += `
+                    <div onclick="openEmail('${msg.id}')" class="px-6 py-4 flex items-center justify-between gap-4 hover:bg-slate-900/50 transition cursor-pointer ${msg.unread ? 'bg-slate-900/30 font-semibold' : ''}">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-emerald-400 shrink-0">
+                                <i class="fa-solid ${msg.unread ? 'fa-envelope' : 'fa-envelope-open'}"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs text-slate-300 truncate">${msg.sender}</span>
+                                    ${msg.hasAttachment ? '<i class="fa-solid fa-paperclip text-xs text-slate-500"></i>' : ''}
+                                </div>
+                                <h4 class="text-sm text-slate-100 truncate mt-0.5">${msg.subject}</h4>
+                                <p class="text-xs text-slate-400 truncate mt-0.5">${msg.snippet}</p>
+                            </div>
+                        </div>
+                        <div class="text-right shrink-0">
+                            <span class="text-xs text-slate-500 font-mono">${msg.time}</span>
+                            ${msg.unread ? '<span class="block w-2 h-2 rounded-full bg-emerald-500 ml-auto mt-1.5"></span>' : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        // Open Email Reader Modal
+        function openEmail(id) {
+            const messages = inboxStore[currentPasscode] || [];
+            const msg = messages.find(m => m.id === id);
+            if(!msg) return;
+
+            msg.unread = false;
+            renderInbox();
+
+            document.getElementById('modal-sender').innerText = msg.sender;
+            document.getElementById('modal-subject').innerText = msg.subject;
+            document.getElementById('modal-time').innerText = msg.time;
+            document.getElementById('modal-body-html').innerHTML = msg.body;
+            document.getElementById('modal-body-raw').innerText = msg.body;
+
+            const att = document.getElementById('modal-attachments');
+            if(msg.hasAttachment) {
+                att.classList.remove('hidden');
+            } else {
+                att.classList.add('hidden');
+            }
+
+            document.getElementById('email-modal').classList.remove('hidden');
+        }
+
+        function closeEmailModal() {
+            document.getElementById('email-modal').classList.add('hidden');
+        }
+
+        function toggleRawSource() {
+            const htmlDiv = document.getElementById('modal-body-html');
+            const rawPre = document.getElementById('modal-body-raw');
+            htmlDiv.classList.toggle('hidden');
+            rawPre.classList.toggle('hidden');
+        }
+
+        function clearInbox() {
+            inboxStore[currentPasscode] = [];
+            renderInbox();
+            showToast('Inbox cleared successfully', 'success');
+        }
+
+        // Manual Refresh Simulation
+        function manualRefresh() {
+            const icon = document.getElementById('refresh-icon');
+            icon.classList.add('fa-spin');
+            setTimeout(() => {
+                icon.classList.remove('fa-spin');
+                renderInbox();
+                showToast('Inbox synced successfully', 'success');
+            }, 800);
+        }
+
+        // Simulator Modal Handlers
+        function openSimulatorModal() {
+            document.getElementById('simulator-modal').classList.remove('hidden');
+        }
+        function closeSimulatorModal() {
+            document.getElementById('simulator-modal').classList.add('hidden');
+        }
+
+        function sendSimulatedEmail() {
+            const sender = document.getElementById('sim-sender').value;
+            const subject = document.getElementById('sim-subject').value;
+            const body = document.getElementById('sim-body').value;
+            const hasAttachment = document.getElementById('sim-attachment').checked;
+
+            const newMsg = {
+                id: 'mail_' + Date.now(),
+                sender: sender,
+                subject: subject,
+                snippet: body.replace(/<[^>]*>?/gm, '').substring(0, 70) + '...',
+                body: body,
+                time: 'Just now',
+                unread: true,
+                hasAttachment: hasAttachment
+            };
+
+            if(!inboxStore[currentPasscode]) inboxStore[currentPasscode] = [];
+            inboxStore[currentPasscode].unshift(newMsg);
+
+            renderInbox();
+            closeSimulatorModal();
+            showToast('Simulated incoming mail received!', 'success');
+        }
+
+        // QR Code Modal
+        let qrInst = null;
+        function openQrModal() {
+            const addr = getFullEmailAddress();
+            document.getElementById('qr-modal-email').innerText = addr;
+            const box = document.getElementById('qr-code-box');
+            box.innerHTML = '';
+            
+            qrInst = new QRCodeStyling({
+                width: 200,
+                height: 200,
+                data: addr,
+                dotsOptions: { color: "#059669", type: "rounded" },
+                backgroundOptions: { color: "#ffffff" }
+            });
+            qrInst.append(box);
+            document.getElementById('qr-modal').classList.remove('hidden');
+        }
+
+        // Expiry Timer Countdown
+        function startCountdown() {
+            setInterval(() => {
+                if(expirySeconds > 0) {
+                    expirySeconds--;
+                    const m = Math.floor(expirySeconds / 60);
+                    const s = expirySeconds % 60;
+                    document.getElementById('countdown-timer').innerText = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+                }
+            }, 1000);
+        }
+
+        function extendTime() {
+            expirySeconds += 600;
+            showToast('Extended inbox expiry by 10 minutes', 'success');
+        }
+
+        function mockReply() { showToast('Reply dispatch simulated successfully!', 'success'); }
+        function mockForward() { showToast('Forward simulation completed!', 'success'); }
+    </script>
+</body>
+</html>
